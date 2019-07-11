@@ -498,6 +498,7 @@ void insert_repetition(mongoc_client_t *client, u8 *target_name, u16 *rep){
   BSON_APPEND_UTF8(query, "ip", local_ip);
   //bson_t *opts = BCON_NEW ("sort", "{", "time", BCON_INT32 (1), "}");
   cursor=mongoc_collection_find_with_opts (collection, query, NULL, NULL);
+  printf("r:%d\nr:%d\n",rep,rep+1);
   if(! mongoc_cursor_next (cursor, &search))
   {
     time_t myt=time(NULL);
@@ -522,15 +523,22 @@ void insert_repetition(mongoc_client_t *client, u8 *target_name, u16 *rep){
     //BSON_APPEND_INT32(doc, "ip", local_ip);
     time_t myt=time(NULL);
     long ii = time(&myt);
+    bson_t *child = bson_new();
     BSON_APPEND_INT64(doc, "time", ii);
     bson_destroy(query);
     query=BCON_NEW("ip", BCON_UTF8 (local_ip));    //if db_time < now
-      printf("update\n");
+    //  printf("update\n");
+
     bson_t *update=BCON_NEW ("$set",
                              "{",
                              "trace",
-                             rep,"}");
+                             BCON_BIN(BSON_SUBTYPE_BINARY,rep,MAP_SIZE),"}");
+  //bson_t* update = bson_new();
 
+          /*bson_append_document_begin(update,"repetition",-1,child);
+          BSON_APPEND_BINARY(child,"trace",BSON_SUBTYPE_BINARY,rep,MAP_SIZE);
+          BSON_APPEND_INT64(child,"time",ii);
+          bson_append_document_end(update,child);*/
     //if (!mongoc_collection_insert_one (collection, doc, NULL, NULL, &error))
     //  fprintf (stderr, "%s\n", error.message);
 
